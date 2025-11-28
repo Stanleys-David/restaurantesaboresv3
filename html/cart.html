@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurante Sabores - Carrito</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+<link rel="stylesheet" href="../css/cart.css">
+</head>
+<body>
+    <div class="min-h-screen bg-gradient">
+        <header class="header">
+            <div class="container">
+                <div class="header-content">
+                    <div class="header-left">
+                        <div class="logo">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <h1 class="header-title">Restaurante Sabores</h1>
+                    </div>
+
+                    <div class="header-right">
+                        <a href="menu.html" class="btn btn-outline">Menú</a>
+                        <a href="orders.html" class="btn btn-outline">Mis Pedidos</a>
+                        <button id="logoutBtn" class="btn btn-outline" style="display: none;">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Cerrar Sesión
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="container">
+            <div class="cart-page">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="cart-title">
+                            <i class="fas fa-shopping-cart"></i>
+                            Carrito de Compras
+                        </h2>
+                    </div>
+
+                    <div class="card-content">
+                        <div id="cartItemsContainer" class="cart-items-container">
+                        </div>
+
+                        <div id="orderForm" class="order-form" style="display: none;">
+                            <div class="form-section">
+                                <h3>Tipo de Pedido</h3>
+                                <select id="orderType" class="form-select">
+                                    <option value="domicilio">Domicilio</option>
+                                    <option value="llevar">Para Llevar</option>
+                                    <option value="restaurante">Comer en el Restaurante</option>
+                                </select>
+                            </div>
+
+                            <div class="form-section">
+                                <h3>Detalles del Pedido</h3>
+                                <div class="form-grid">
+                                    <input type="text" id="customerName" placeholder="Nombre" required>
+                                    <input type="tel" id="customerPhone" placeholder="Número de Teléfono" required>
+                                    <input type="text" id="customerAddress" placeholder="Dirección" class="full-width" style="display: none;">
+                                    <input type="time" id="arrivalTime" placeholder="Hora de Llegada" style="display: none;">
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <h3>Método de Pago</h3>
+                                <select id="paymentMethod" class="form-select">
+                                    <option value="efectivo">Efectivo</option>
+                                    <option value="transferencia">Transferencia</option>
+                                    <option value="tarjeta">Tarjeta</option>
+                                </select>
+                            </div>
+
+                            <div class="order-summary">
+                                <div class="summary-line">
+                                    <span>Subtotal:</span>
+                                    <span id="subtotal">$0</span>
+                                </div>
+                                <div class="summary-line">
+                                    <span>Propina:</span>
+                                    <div class="tip-input">
+                                        <span id="tipAmount">$0</span>
+                                        <input type="number" id="tip" min="0" value="0" class="tip-field">
+                                    </div>
+                                </div>
+                                <div class="summary-line total-line">
+                                    <span>Total:</span>
+                                    <span id="total" class="total-amount">$0</span>
+                                </div>
+                            </div>
+
+                            <button id="placeOrderBtn" class="btn btn-success btn-large">
+                                <i class="fas fa-credit-card"></i>
+                                Realizar Pedido
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script type="module" src="../js/cart.js"></script>
+</body>
+</html>

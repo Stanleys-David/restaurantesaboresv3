@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurante Sabores - Mis Pedidos</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+<link rel="stylesheet" href="../css/orders.css">
+</head>
+<body>
+    <div class="min-h-screen bg-gradient">
+        <header class="header">
+            <div class="container">
+                <div class="header-content">
+                    <div class="header-left">
+                        <div class="logo">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <h1 class="header-title">Restaurante Sabores</h1>
+                    </div>
+
+                    <div class="header-right">
+                        <a href="menu.html" class="btn btn-outline">Menú</a>
+                        <a href="cart.html" class="btn btn-outline">Carrito</a>
+                        <button id="logoutBtn" class="btn btn-outline">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Cerrar Sesión
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="container">
+            <div class="orders-page">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Mis Pedidos</h2>
+                    </div>
+
+                    <div class="card-content">
+                        <div id="ordersContainer">
+                            <div style="text-align: center; padding: 2rem;">
+                                <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #6b7280; margin-bottom: 1rem;"></i>
+                                <p>Cargando pedidos...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script type="module" src="../js/orders.js"></script>
+</body>
+</html>

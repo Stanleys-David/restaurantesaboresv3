@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurante Sabores - Menú</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/menu.css">
+    <link rel="stylesheet" href="../css/cart.css">
+</head>
+<body>
+    <div class="min-h-screen bg-gradient">
+        <header class="header">
+            <div class="container">
+                <div class="header-content">
+                    <div class="header-left">
+                        <div class="logo">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <h1 class="header-title">Restaurante Sabores</h1>
+                    </div>
+
+                    <div class="header-right">
+                        <div id="userInfo" class="user-info" style="display: none;">
+                            <span id="userName"></span>
+                            <button id="logoutBtn" class="btn btn-outline btn-sm">
+                                <i class="fas fa-sign-out-alt"></i>
+                                Cerrar Sesión
+                            </button>
+                        </div>
+                        
+                        <div id="guestInfo" class="guest-info">
+                            <a href="inicioSesion.html" class="btn btn-outline btn-sm">
+                                <i class="fas fa-user"></i>
+                                Iniciar Sesión
+                            </a>
+                        </div>
+
+                        <a href="orders.html" class="btn btn-outline btn-sm">
+                            Mis Pedidos
+                        </a>
+
+                        <div id="adminBtn" style="display: none;">
+                            <a href="admin.html" class="btn btn-outline btn-sm">
+                                Administración
+                            </a>
+                        </div>
+
+                        <a href="cart.html" class="btn btn-primary cart-btn">
+                            <i class="fas fa-shopping-cart"></i>
+                            Carrito
+                            <span id="cartBadge" class="badge">0</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="container">
+            <div class="filter-section mb-4">
+                <div class="flex gap-2">
+                    <input id="searchInput" type="text" placeholder="Buscar plato..." class="p-4 border border-gray-300 rounded-lg flex-grow" oninput="filterProducts()">
+                    <select id="categoryFilter" class="p-4 border border-gray-300 rounded-lg" onchange="filterProducts()">
+                        <option value="">Todas las categorías</option>
+                    </select>
+                </div>
+            </div>
+            <div id="menuContainer" class="menu-container">
+            </div>
+        </div>
+
+        <div id="productModal" class="modal">
+            <div class="modal-content">
+                <span class="close">×</span>
+                <div id="modalContent">
+                </div>
+            </div>
+        </div>
+
+        <div id="cartPreview" class="cart-preview" style="display: none;">
+            <div class="cart-preview-content">
+                <span id="cartItemCount"></span>
+                <span id="cartSubtotal"></span>
+                <a href="cart.html" class="btn btn-primary">Ver mi pedido</a>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <div class="container">
+                <p>Contacto: +123 456 789 | 
+                    <a href="https://wa.me/3134486777" class="whatsapp-link">WhatsApp</a>
+                </p>
+            </div>
+        </footer>
+    </div>
+
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <h3>¿Estás seguro que deseas cerrar sesión?</h3>
+            <p>Al cerrar sesión, tendrás que volver a iniciar sesión para acceder a tu cuenta.</p>
+            <div class="modal-buttons">
+                <button id="cancelLogout" class="btn btn-outline">Cancelar</button>
+                <button id="confirmLogout" class="btn btn-primary">Cerrar Sesión</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script type="module" src="../js/menu.js"></script>
+</body>
+</html>
