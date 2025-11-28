@@ -11,7 +11,6 @@ function showNotification(message, type = "info") {
   notification.className = `notification ${type}`
   notification.style.display = "block"
   notification.classList.add("show")
-
   setTimeout(() => {
     notification.classList.remove("show")
   }, 3000)
@@ -57,7 +56,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
   loginText.textContent = "Iniciando sesión..."
 
   try {
-    // Verificar credenciales de administrador
+    // Verificar credenciales de administrador hardcodeadas
     if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
       const adminSession = {
         id: "admin",
@@ -71,8 +70,8 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
 
       localStorage.setItem("currentUser", JSON.stringify(adminSession))
       localStorage.setItem("currentUserEmail", ADMIN_CREDENTIALS.email)
-      showNotification("¡Bienvenido Administrador!", "success")
 
+      showNotification("¡Bienvenido Administrador!", "success")
       setTimeout(() => {
         window.location.href = "admin.html"
       }, 1500)
@@ -90,19 +89,26 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
         surname: userResult.user.surname,
         email: userResult.user.email,
         phone: userResult.user.phone,
-        role: "customer",
-        isAdmin: false,
+        role: userResult.user.isAdmin ? "admin" : "customer",
+        isAdmin: userResult.user.isAdmin || false,
       }
 
       // Guardar en localStorage para mantener compatibilidad
       localStorage.setItem("currentUser", JSON.stringify(userSession))
       localStorage.setItem("currentUserEmail", userResult.user.email)
 
-      showNotification(`¡Bienvenido ${userResult.user.name}! Has iniciado sesión correctamente`, "success")
-
-      setTimeout(() => {
-        window.location.href = "menu.html"
-      }, 1500)
+      // Verificar si el usuario es administrador
+      if (userResult.user.isAdmin === true) {
+        showNotification(`¡Bienvenido Administrador ${userResult.user.name}!`, "success")
+        setTimeout(() => {
+          window.location.href = "admin.html"
+        }, 1500)
+      } else {
+        showNotification(`¡Bienvenido ${userResult.user.name}! Has iniciado sesión correctamente`, "success")
+        setTimeout(() => {
+          window.location.href = "menu.html"
+        }, 1500)
+      }
     } else {
       showNotification("Email o contraseña incorrectos. Verifica tus datos o regístrate si no tienes cuenta.", "error")
       loginText.textContent = localStorage.getItem("currentUser") ? "Cambiar Sesión" : "Iniciar Sesión"
