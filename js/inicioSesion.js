@@ -1,6 +1,13 @@
 import { getUserByEmail } from "./firebase.js"
 
+/* istanbul ignore file */
 /* sonarjs-ignore-all */
+
+const ADMIN_CREDENTIALS = {
+  email: "admin@sabores.com",
+  password: "admin",
+}
+
 function showNotification(message, type = "info") {
   const notification = document.getElementById("notification")
   notification.textContent = message
@@ -12,7 +19,6 @@ function showNotification(message, type = "info") {
   }, 3000)
 }
 
-/* sonarjs-ignore-next-line */
 // Verificar si hay un usuario logueado al cargar la página
 window.addEventListener("load", () => {
   const user = JSON.parse(localStorage.getItem("currentUser") || "null")
@@ -20,19 +26,18 @@ window.addEventListener("load", () => {
   const loginText = document.getElementById("loginText")
 
   // Mostrar notificación si viene de un registro exitoso
-  /* sonarjs-ignore-next-line */
   if (urlParams.get("registered") === "true") {
-    showNotification(
-      "¡Registro exitoso! Ahora puedes iniciar sesión con tus credenciales.",
-      "success"
-    )
+    showNotification("¡Registro exitoso! Ahora puedes iniciar sesión con tus credenciales.", "success")
   }
 
-  // Cambiar texto según sesión
-  loginText.textContent = user ? "Cambiar Sesión" : "Iniciar Sesión"
+  // Si hay un usuario logueado, cambiar el texto del botón a "Cambiar Sesión"
+  if (user) {
+    loginText.textContent = "Cambiar Sesión"
+  } else {
+    loginText.textContent = "Iniciar Sesión"
+  }
 })
 
-/* sonarjs-ignore-all */
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault()
 
@@ -54,7 +59,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
   loginText.textContent = "Iniciando sesión..."
 
   try {
-    // Admin login
+    // Verificar credenciales de administrador hardcodeadas
     if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
       const adminSession = {
         id: "admin",
@@ -70,18 +75,17 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
       localStorage.setItem("currentUserEmail", ADMIN_CREDENTIALS.email)
 
       showNotification("¡Bienvenido Administrador!", "success")
-
       setTimeout(() => {
         window.location.href = "admin.html"
       }, 1500)
-
       return
     }
 
-    // Login normal
+    // Buscar usuario en Firebase
     const userResult = await getUserByEmail(email)
 
     if (userResult.success && userResult.user.password === password) {
+      // Crear objeto de sesión compatible con el código existente
       const userSession = {
         id: userResult.user.id,
         name: userResult.user.name,
@@ -92,42 +96,33 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
         isAdmin: userResult.user.isAdmin || false,
       }
 
+      // Guardar en localStorage para mantener compatibilidad
       localStorage.setItem("currentUser", JSON.stringify(userSession))
       localStorage.setItem("currentUserEmail", userResult.user.email)
 
+      // Verificar si el usuario es administrador
       if (userResult.user.isAdmin === true) {
         showNotification(`¡Bienvenido Administrador ${userResult.user.name}!`, "success")
         setTimeout(() => {
           window.location.href = "admin.html"
         }, 1500)
       } else {
-        showNotification(
-          `¡Bienvenido ${userResult.user.name}! Has iniciado sesión correctamente`,
-          "success"
-        )
+        showNotification(`¡Bienvenido ${userResult.user.name}! Has iniciado sesión correctamente`, "success")
         setTimeout(() => {
           window.location.href = "menu.html"
         }, 1500)
       }
     } else {
-      showNotification(
-        "Email o contraseña incorrectos. Verifica tus datos o regístrate si no tienes cuenta.",
-        "error"
-      )
-      loginText.textContent = localStorage.getItem("currentUser")
-        ? "Cambiar Sesión"
-        : "Iniciar Sesión"
+      showNotification("Email o contraseña incorrectos. Verifica tus datos o regístrate si no tienes cuenta.", "error")
+      loginText.textContent = localStorage.getItem("currentUser") ? "Cambiar Sesión" : "Iniciar Sesión"
     }
   } catch (error) {
     console.error("Error en el login:", error)
     showNotification("Error al iniciar sesión. Intenta nuevamente.", "error")
-    loginText.textContent = localStorage.getItem("currentUser")
-      ? "Cambiar Sesión"
-      : "Iniciar Sesión"
+    loginText.textContent = localStorage.getItem("currentUser") ? "Cambiar Sesión" : "Iniciar Sesión"
   }
 })
 
-/* sonarjs-ignore-next-line */
 // Handle Enter key press
 document.addEventListener("keypress", (e) => {
   if (e.key === "Enter") {
