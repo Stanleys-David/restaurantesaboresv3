@@ -1,9 +1,6 @@
 import { getUserByEmail } from "./firebase.js"
 
-const ADMIN_CREDENTIALS = {
-  email: "admin@sabores.com",
-  password: "admin",
-}
+
 
 function showNotification(message, type = "info") {
   const notification = document.getElementById("notification")
