@@ -1,34 +1,6 @@
-/* ------------- FUNCIONES TESTEABLES ------------- */
-
-// Validación del email (cubierta por test)
-export function validateEmail(email) {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-}
-
-// Notificación (cubierta por test)
-export function showNotification(message, type = "info") {
-  const notification = document.getElementById("notification");
-  if (!notification) return false;
-
-  notification.textContent = message; // textContent evita inyección HTML
-  notification.className = `notification ${type}`;
-  notification.style.display = "block";
-  notification.classList.add("show");
-
-  setTimeout(() => {
-    notification.classList.remove("show");
-  }, 3000);
-
-  return true;
-}
-
-/* ------------- LÓGICA DEL LOGIN (REFORMA) ------------- */
-
 import { getUserByEmail } from "./firebase.js";
 
 /* Helpers internos */
-
 function safeGetElement(id) {
   return document.getElementById(id) || null;
 }
@@ -44,12 +16,7 @@ function redirectAfterDelay(href, delay = 1500) {
   }, delay);
 }
 
-/**
- * Normaliza distintos nombres de campo que indiquen rol admin.
- * Devuelve true si cualquiera de las variantes está presente y es truthy.
- */
 function getIsAdminFlagFromUser(user = {}) {
-  // Añade aquí otras variantes si en la base de datos hay nombres distintos
   return Boolean(
     user.isAdmin === true ||
     user.IsAdmin === true ||
@@ -64,7 +31,12 @@ window.addEventListener("load", () => {
   const urlParams = new URLSearchParams(window.location.search);
 
   if (urlParams.get("registered") === "true") {
-    showNotification("¡Registro exitoso! Ahora puedes iniciar sesión con tus credenciales.", "success");
+    const notification = safeGetElement("notification");
+    if (notification) {
+      notification.textContent = "¡Registro exitoso! Ahora puedes iniciar sesión con tus credenciales.";
+      notification.className = "notification success";
+      notification.style.display = "block";
+    }
   }
 
   setLoginButtonText(user ? "Cambiar Sesión" : "Iniciar Sesión");
@@ -83,20 +55,15 @@ if (loginForm) {
     const password = (passwordInput && passwordInput.value) ? passwordInput.value.trim() : "";
 
     if (!email || !password) {
-      showNotification("Por favor ingresa tu correo y contraseña", "error");
-      return;
-    }
-
-    if (!validateEmail(email)) {
-      showNotification("Por favor ingresa un email válido", "error");
+      alert("Por favor ingresa tu correo y contraseña");
       return;
     }
 
     setLoginButtonText("Iniciando sesión...");
 
     try {
-      // Credenciales admin en entorno (si se usan)
-      if (typeof ADMIN_CREDENTIALS !== "undefined" && ADMIN_CREDENTIALS && email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
+      if (typeof ADMIN_CREDENTIALS !== "undefined" && ADMIN_CREDENTIALS &&
+          email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
         const adminSession = {
           id: "admin",
           name: "Administrador",
@@ -110,26 +77,23 @@ if (loginForm) {
         localStorage.setItem("currentUser", JSON.stringify(adminSession));
         localStorage.setItem("currentUserEmail", ADMIN_CREDENTIALS.email);
 
-        showNotification("¡Bienvenido Administrador!", "success");
+        alert("¡Bienvenido Administrador!");
         redirectAfterDelay("admin.html");
         return;
       }
 
-      // Llamada a la capa de datos
       const userResult = await getUserByEmail(email);
 
-      // Validaciones seguras del resultado
       if (!userResult || !userResult.success || !userResult.user) {
-        showNotification("Email o contraseña incorrectos. Verifica tus datos o regístrate si no tienes cuenta.", "error");
+        alert("Email o contraseña incorrectos. Verifica tus datos o regístrate si no tienes cuenta.");
         setLoginButtonText(localStorage.getItem("currentUser") ? "Cambiar Sesión" : "Iniciar Sesión");
         return;
       }
 
       const storedUser = userResult.user;
 
-      // Comprobar contraseña (nota: idealmente aquí se compara un token/hashed en backend)
       if (storedUser.password !== password) {
-        showNotification("Email o contraseña incorrectos. Verifica tus datos o regístrate si no tienes cuenta.", "error");
+        alert("Email o contraseña incorrectos. Verifica tus datos o regístrate si no tienes cuenta.");
         setLoginButtonText(localStorage.getItem("currentUser") ? "Cambiar Sesión" : "Iniciar Sesión");
         return;
       }
@@ -150,22 +114,22 @@ if (loginForm) {
       localStorage.setItem("currentUserEmail", storedUser.email);
 
       if (isAdmin) {
-        showNotification(`¡Bienvenido Administrador ${storedUser.name}!`, "success");
+        alert(`¡Bienvenido Administrador ${storedUser.name}!`);
         redirectAfterDelay("admin.html");
       } else {
-        showNotification(`¡Bienvenido ${storedUser.name}! Has iniciado sesión correctamente`, "success");
+        alert(`¡Bienvenido ${storedUser.name}! Has iniciado sesión correctamente`);
         redirectAfterDelay("menu.html");
       }
 
     } catch (error) {
       console.error("Error en el login:", error);
-      showNotification("Error al iniciar sesión. Intenta nuevamente.", "error");
+      alert("Error al iniciar sesión. Intenta nuevamente.");
       setLoginButtonText(localStorage.getItem("currentUser") ? "Cambiar Sesión" : "Iniciar Sesión");
     }
   });
 }
 
-/* Manejo de la tecla Enter de forma segura */
+/* Manejo de la tecla Enter */
 document.addEventListener("keypress", (e) => {
   if (e.key === "Enter") {
     const form = safeGetElement("loginForm");
@@ -177,6 +141,3 @@ document.addEventListener("keypress", (e) => {
     }
   }
 });
-
-// Necesario para Jest
-export {};
