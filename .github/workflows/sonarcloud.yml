@@ -45,7 +45,7 @@ jobs:
         with:
           args: >
             -Dsonar.projectKey=Stanleys-David_restaurantesaboresv3
-            -Dsonar.organization=stanleys-david
+            -Dsonar.organization=stanleysdavid
             -Dsonar.sources=.
             -Dsonar.coverage.exclusions=js/inicioSesion.js,js/inicioSesion.test.js
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
