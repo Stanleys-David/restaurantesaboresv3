@@ -1196,6 +1196,7 @@ function viewOrderDetailsFunction(orderId) {
 
     // Crear modal de detalles
     const modal = document.createElement("div")
+    modal.className = "modal"
     modal.style.position = "fixed"
     modal.style.top = "0"
     modal.style.left = "0"
