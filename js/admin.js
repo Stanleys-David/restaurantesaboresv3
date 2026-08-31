@@ -413,7 +413,7 @@ async function renderOrders() {
                   <div>
                       <h3>Pedido #${order.id || orderId}</h3>
                       <p>${order.customerName || "Cliente"} - ${order.phone || "Sin teléfono"}</p>
-                      <p>${orderDate} - ${order.details?.orderType || "N/A"}</p>
+                      <p>${orderDate} - ${order.details?.orderType || "N/A"}${order.details?.tableName ? ` - ${order.details.tableName}` : ""}</p>
                   </div>
                   <div class="text-right">
                       <div class="status-badge status-${order.status || "pendiente"}">${order.status || "pendiente"}</div>

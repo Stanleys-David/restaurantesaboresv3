@@ -200,6 +200,11 @@ export async function deleteTable(tableId) {
   return { success: true }
 }
 
+export async function updateTableStatus(tableId, status, orderId = null) {
+  await updateDoc(doc(db, "tables", tableId), { status, activeOrderId: orderId, updatedAt: new Date() })
+  return { success: true }
+}
+
 export function subscribeToTables(callback) {
   return onSnapshot(collection(db, "tables"), (snapshot) => callback(snapshot.docs.map((item) => ({ id: item.id, ...item.data() }))))
 }
