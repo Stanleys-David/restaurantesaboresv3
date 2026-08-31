@@ -9,6 +9,7 @@ import {
   getUserProfile,
   signOut,
   onAuthStateChanged,
+  releaseTableForOrder,
 } from "./firebase.js"
 
 const localUser = JSON.parse(localStorage.getItem("currentUser") || "null")
@@ -477,6 +478,9 @@ async function updateOrderStatusAdmin(orderId, newStatus) {
     const result = await updateOrderStatus(orderId, newStatus)
 
     if (result.success) {
+      if (["entregado", "cancelado"].includes(newStatus)) {
+        await releaseTableForOrder(orderId)
+      }
       showNotification(`Estado del pedido #${orderId} actualizado a ${newStatus}`, "success")
 
       // Actualizar la UI

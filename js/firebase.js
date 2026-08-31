@@ -205,6 +205,12 @@ export async function updateTableStatus(tableId, status, orderId = null) {
   return { success: true }
 }
 
+export async function releaseTableForOrder(orderId) {
+  const snapshot = await getDocs(query(collection(db, "tables"), where("activeOrderId", "==", orderId)))
+  await Promise.all(snapshot.docs.map((table) => updateDoc(table.ref, { status: "available", activeOrderId: null, updatedAt: new Date() })))
+  return { success: true, released: snapshot.size }
+}
+
 export function subscribeToTables(callback) {
   return onSnapshot(collection(db, "tables"), (snapshot) => callback(snapshot.docs.map((item) => ({ id: item.id, ...item.data() }))))
 }
