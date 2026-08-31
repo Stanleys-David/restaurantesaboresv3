@@ -5,13 +5,32 @@ import {
   getAllProducts,
   updateProduct,
   deleteProduct,
+  auth,
+  getUserProfile,
+  signOut,
+  onAuthStateChanged,
 } from "./firebase.js"
 
-const user = JSON.parse(localStorage.getItem("currentUser") || "null")
+const localUser = JSON.parse(localStorage.getItem("currentUser") || "null")
+let user = localUser
 
-if (!user || user.role !== "admin") {
+if (!localUser || localUser.role !== "admin") {
   alert("Acceso denegado. Solo los administradores pueden acceder a esta página.")
   window.location.href = "inicioSesion.html"
+}
+
+if (auth) {
+  onAuthStateChanged(auth, async (firebaseUser) => {
+    if (!firebaseUser) return window.location.href = "inicioSesion.html"
+    const profile = await getUserProfile(firebaseUser.uid)
+    if (!profile.success || profile.user.role !== "admin") {
+      alert("Acceso denegado. Solo los administradores pueden acceder a esta página.")
+      await signOut(auth)
+      window.location.href = "inicioSesion.html"
+    } else {
+      user = profile.user
+    }
+  })
 }
 
 let products = []
@@ -1320,7 +1339,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.getElementById("cancelEdit").addEventListener("click", resetProductForm)
 
-  document.getElementById("logoutBtn").addEventListener("click", () => {
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
+    await signOut(auth)
     localStorage.removeItem("currentUser")
     localStorage.removeItem("currentUserEmail")
     localStorage.removeItem("cart")

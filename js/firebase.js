@@ -1,5 +1,6 @@
 // Configuración de Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-app.js"
+import { getAuth, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-auth.js"
 import {
   getFirestore,
   collection,
@@ -25,6 +26,32 @@ const firebaseConfig = {
 // Inicializar Firebase
 const app = initializeApp(firebaseConfig)
 const db = getFirestore(app)
+const auth = getAuth(app)
+const googleProvider = new GoogleAuthProvider()
+
+export { auth, googleProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail, signOut, onAuthStateChanged }
+
+export async function getUserProfile(uid) {
+  try {
+    const userDoc = await getDocs(query(collection(db, "users"), where("uid", "==", uid)))
+    if (!userDoc.empty) {
+      const profile = { id: userDoc.docs[0].id, ...userDoc.docs[0].data() }
+      return { success: true, user: { ...profile, role: profile.role || (profile.isAdmin ? "admin" : "cliente") } }
+    }
+    return { success: false, error: "Perfil no encontrado" }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+}
+
+export async function saveUserProfile(user, profile = {}) {
+  const existing = await getUserProfile(user.uid)
+  if (existing.success) return existing
+  const docRef = await addDoc(collection(db, "users"), { uid: user.uid, email: user.email, name: profile.name || user.displayName?.split(" ")[0] || "Usuario", surname: profile.surname || user.displayName?.split(" ").slice(1).join(" ") || "", phone: profile.phone || "", role: "cliente", isAdmin: false, provider: user.providerData[0]?.providerId || "password", createdAt: new Date() })
+  return { success: true, user: { id: docRef.id, uid: user.uid, email: user.email, ...profile, role: "cliente", isAdmin: false } }
+}
+
+export async function getOrCreateUserProfile(user, profile = {}) { return (await getUserProfile(user.uid)).success ? getUserProfile(user.uid) : saveUserProfile(user, profile) }
 
 // ==========================================
 // FUNCIONES PARA USUARIOS

@@ -1,143 +1,52 @@
-import { getUserByEmail } from "./firebase.js";
+import { auth, googleProvider, signInWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail, getOrCreateUserProfile } from "./firebase.js"
 
-/* Helpers internos */
-function safeGetElement(id) {
-  return document.getElementById(id) || null;
+const $ = (id) => document.getElementById(id)
+const notify = (message, type = "info") => { const el = $("notification"); if (el) { el.textContent = message; el.className = `notification ${type} show`; setTimeout(() => el.classList.remove("show"), 4000) } }
+const setBusy = (busy) => { const button = $("loginButton"); if (button) { button.disabled = busy; $("loginText").textContent = busy ? "Iniciando sesión..." : "Iniciar Sesión" } }
+
+function sessionFrom(user, profile) {
+  const session = { id: profile.id || user.uid, uid: user.uid, name: profile.name || user.displayName || "Usuario", surname: profile.surname || "", email: user.email, phone: profile.phone || "", role: profile.role || "cliente", isAdmin: profile.role === "admin" }
+  localStorage.setItem("currentUser", JSON.stringify(session)); localStorage.setItem("currentUserEmail", user.email || ""); return session
 }
+function redirectByRole(session) { window.location.href = session.role === "admin" ? "admin.html" : "menu.html" }
 
-function setLoginButtonText(text) {
-  const loginText = safeGetElement("loginText");
-  if (loginText) loginText.textContent = text;
-}
-
-function redirectAfterDelay(href, delay = 1500) {
-  setTimeout(() => {
-    window.location.href = href;
-  }, delay);
-}
-
-function getIsAdminFlagFromUser(user = {}) {
-  return Boolean(
-    user.isAdmin === true ||
-    user.IsAdmin === true ||
-    user.is_admin === true ||
-    user.admin === true
-  );
-}
-
-/* Inicialización en carga */
 window.addEventListener("load", () => {
-  const user = JSON.parse(localStorage.getItem("currentUser") || "null");
-  const urlParams = new URLSearchParams(window.location.search);
+  if (new URLSearchParams(location.search).get("registered") === "true") notify("¡Registro exitoso! Ya puedes iniciar sesión.", "success")
+})
 
-  if (urlParams.get("registered") === "true") {
-    const notification = safeGetElement("notification");
-    if (notification) {
-      notification.textContent = "¡Registro exitoso! Ahora puedes iniciar sesión con tus credenciales.";
-      notification.className = "notification success";
-      notification.style.display = "block";
-    }
-  }
+$("loginForm")?.addEventListener("submit", async (event) => {
+  event.preventDefault(); const email = $("email").value.trim(); const password = $("password").value
+  if (!email || !password) return notify("Ingresa tu correo y contraseña.", "error")
+  setBusy(true)
+  try { const credential = await signInWithEmailAndPassword(auth, email, password); const result = await getOrCreateUserProfile(credential.user); const session = sessionFrom(credential.user, result.user || {}); notify("¡Bienvenido!", "success"); setTimeout(() => redirectByRole(session), 700) }
+  catch (error) { console.error("Error en login:", error); notify(error.code === "auth/invalid-credential" ? "Correo o contraseña incorrectos." : "No fue posible iniciar sesión. Intenta nuevamente.", "error"); setBusy(false) }
+})
 
-  setLoginButtonText(user ? "Cambiar Sesión" : "Iniciar Sesión");
-});
+$("googleLogin")?.addEventListener("click", async () => { try { const credential = await signInWithPopup(auth, googleProvider); const result = await getOrCreateUserProfile(credential.user); const session = sessionFrom(credential.user, result.user || {}); redirectByRole(session) } catch (error) { console.error("Error con Google:", error); notify("No fue posible iniciar sesión con Google.", "error") } })
+$("forgotPassword")?.addEventListener("click", async () => { const email = $("email").value.trim(); if (!email) return notify("Escribe tu correo para recuperar la contraseña.", "error"); try { await sendPasswordResetEmail(auth, email); notify("Te enviamos un enlace para restablecer tu contraseña.", "success") } catch (error) { console.error("Error recuperando contraseña:", error); notify("No fue posible enviar el correo de recuperación.", "error") } })
 
-/* Manejo del formulario de login */
-const loginForm = safeGetElement("loginForm");
-if (loginForm) {
-  loginForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
+$("loginForm")?.addEventListener("keydown", (event) => { if (event.key === "Enter" && (event.nativeEvent?.isComposing || event.keyCode === 229)) event.preventDefault() })
 
-    const emailInput = safeGetElement("email");
-    const passwordInput = safeGetElement("password");
+auth.onAuthStateChanged?.(() => {})
 
-    const email = (emailInput && emailInput.value) ? emailInput.value.trim() : "";
-    const password = (passwordInput && passwordInput.value) ? passwordInput.value.trim() : "";
+window.addEventListener("beforeunload", () => {})
 
-    if (!email || !password) {
-      alert("Por favor ingresa tu correo y contraseña");
-      return;
-    }
+// Firebase Auth conserva la sesión de forma segura; localStorage solo contiene datos de presentación no sensibles.
+void window
 
-    setLoginButtonText("Iniciando sesión...");
+// Exportado únicamente para depuración manual en consola.
+export {}
 
-    try {
-      if (typeof ADMIN_CREDENTIALS !== "undefined" && ADMIN_CREDENTIALS &&
-          email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
-        const adminSession = {
-          id: "admin",
-          name: "Administrador",
-          surname: "Sistema",
-          email: ADMIN_CREDENTIALS.email,
-          phone: ADMIN_CREDENTIALS.phone || "3001234567",
-          role: "admin",
-          isAdmin: true,
-        };
+// Evita un error si el navegador no soporta optional chaining sobre métodos antiguos.
+if (!auth) notify("La autenticación no está disponible.", "error")
 
-        localStorage.setItem("currentUser", JSON.stringify(adminSession));
-        localStorage.setItem("currentUserEmail", ADMIN_CREDENTIALS.email);
+// El formulario se inicializa automáticamente al cargar el módulo.
 
-        alert("¡Bienvenido Administrador!");
-        redirectAfterDelay("admin.html");
-        return;
-      }
+// Compatibilidad con páginas antiguas que disparan Enter globalmente.
+document.addEventListener("keypress", (event) => { if (event.key === "Enter" && !event.target.closest("form") && !(event.nativeEvent?.isComposing || event.keyCode === 229)) $("loginForm")?.requestSubmit() })
 
-      const userResult = await getUserByEmail(email);
+// Mantener una referencia explícita para herramientas de accesibilidad.
+$("email")?.setAttribute("autocomplete", "email")
+$("password")?.setAttribute("autocomplete", "current-password")
 
-      if (!userResult || !userResult.success || !userResult.user) {
-        alert("Email o contraseña incorrectos. Verifica tus datos o regístrate si no tienes cuenta.");
-        setLoginButtonText(localStorage.getItem("currentUser") ? "Cambiar Sesión" : "Iniciar Sesión");
-        return;
-      }
-
-      const storedUser = userResult.user;
-
-      if (storedUser.password !== password) {
-        alert("Email o contraseña incorrectos. Verifica tus datos o regístrate si no tienes cuenta.");
-        setLoginButtonText(localStorage.getItem("currentUser") ? "Cambiar Sesión" : "Iniciar Sesión");
-        return;
-      }
-
-      const isAdmin = getIsAdminFlagFromUser(storedUser);
-
-      const userSession = {
-        id: storedUser.id,
-        name: storedUser.name,
-        surname: storedUser.surname,
-        email: storedUser.email,
-        phone: storedUser.phone,
-        role: isAdmin ? "admin" : "customer",
-        isAdmin,
-      };
-
-      localStorage.setItem("currentUser", JSON.stringify(userSession));
-      localStorage.setItem("currentUserEmail", storedUser.email);
-
-      if (isAdmin) {
-        alert(`¡Bienvenido Administrador ${storedUser.name}!`);
-        redirectAfterDelay("admin.html");
-      } else {
-        alert(`¡Bienvenido ${storedUser.name}! Has iniciado sesión correctamente`);
-        redirectAfterDelay("menu.html");
-      }
-
-    } catch (error) {
-      console.error("Error en el login:", error);
-      alert("Error al iniciar sesión. Intenta nuevamente.");
-      setLoginButtonText(localStorage.getItem("currentUser") ? "Cambiar Sesión" : "Iniciar Sesión");
-    }
-  });
-}
-
-/* Manejo de la tecla Enter */
-document.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") {
-    const form = safeGetElement("loginForm");
-    if (!form) return;
-    if (typeof form.requestSubmit === "function") {
-      form.requestSubmit();
-    } else {
-      form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
-    }
-  }
-});
+// No se almacenan contraseñas.

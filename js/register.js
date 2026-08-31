@@ -1,85 +1,21 @@
-import { saveUser, getUserByEmail } from "./firebase.js"
+import { auth, googleProvider, createUserWithEmailAndPassword, signInWithPopup, getOrCreateUserProfile } from "./firebase.js"
 
-function showNotification(message, type = "info") {
-  const notification = document.getElementById("notification")
-  notification.textContent = message
-  notification.className = `notification ${type}`
-  notification.classList.add("show")
+const $ = (id) => document.getElementById(id)
+const notify = (message, type = "info") => { const el = $("notification"); if (el) { el.textContent = message; el.className = `notification ${type} show`; setTimeout(() => el.classList.remove("show"), 4000) } }
+const setBusy = (busy) => { const button = $("registerButton"); if (button) { button.disabled = busy; $("registerText").textContent = busy ? "Registrando..." : "Registrarse" } }
 
-  setTimeout(() => {
-    notification.classList.remove("show")
-  }, 3000)
-}
-
-document.getElementById("registerForm").addEventListener("submit", async (e) => {
-  e.preventDefault()
-
-  const formData = {
-    name: document.getElementById("name").value.trim(),
-    surname: document.getElementById("surname").value.trim(),
-    phone: document.getElementById("phone").value.trim(),
-    email: document.getElementById("email").value.trim(),
-    password: document.getElementById("password").value.trim(),
-  }
-
-  if (!formData.name || !formData.surname || !formData.phone || !formData.email || !formData.password) {
-    showNotification("Por favor completa todos los campos obligatorios", "error")
-    return
-  }
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!emailRegex.test(formData.email)) {
-    showNotification("Por favor ingresa un email válido", "error")
-    return
-  }
-
-  if (formData.password.length < 6) {
-    showNotification("La contraseña debe tener al menos 6 caracteres", "error")
-    return
-  }
-
-  const phoneRegex = /^[\d\s\-+()]+$/
-  if (!phoneRegex.test(formData.phone)) {
-    showNotification("Por favor ingresa un número de teléfono válido", "error")
-    return
-  }
-
-  const registerText = document.getElementById("registerText")
-  registerText.textContent = "Registrando..."
-
-  try {
-    // Verificar si el usuario ya existe
-    const existingUser = await getUserByEmail(formData.email)
-
-    if (existingUser.success) {
-      showNotification("Este email ya está registrado. Intenta con otro email o inicia sesión.", "error")
-      registerText.textContent = "Registrarse"
-      return
-    }
-
-    // Guardar nuevo usuario en Firebase
-    const result = await saveUser(formData)
-
-    if (result.success) {
-      showNotification("¡Registro exitoso! Tu cuenta ha sido creada correctamente", "success")
-      document.getElementById("registerForm").reset()
-
-      setTimeout(() => {
-        window.location.href = "inicioSesion.html?registered=true"
-      }, 1500)
-    } else {
-      showNotification("Error al registrar usuario: " + result.error, "error")
-      registerText.textContent = "Registrarse"
-    }
-  } catch (error) {
-    console.error("Error en el registro:", error)
-    showNotification("Error al registrar usuario. Intenta nuevamente.", "error")
-    registerText.textContent = "Registrarse"
-  }
+$("registerForm")?.addEventListener("submit", async (event) => {
+  event.preventDefault()
+  const profile = { name: $("name").value.trim(), surname: $("surname").value.trim(), phone: $("phone").value.trim() }
+  const email = $("email").value.trim(); const password = $("password").value
+  if (!profile.name || !profile.surname || !profile.phone || !email || !password) return notify("Completa todos los campos obligatorios.", "error")
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return notify("Ingresa un correo válido.", "error")
+  if (password.length < 6) return notify("La contraseña debe tener al menos 6 caracteres.", "error")
+  setBusy(true)
+  try { const credential = await createUserWithEmailAndPassword(auth, email, password); await getOrCreateUserProfile(credential.user, profile); notify("¡Cuenta creada correctamente!", "success"); setTimeout(() => { location.href = "menu.html" }, 700) }
+  catch (error) { console.error("Error en registro:", error); notify(error.code === "auth/email-already-in-use" ? "Este correo ya está registrado." : "No fue posible crear la cuenta.", "error"); setBusy(false) }
 })
 
-document.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") {
-    document.getElementById("registerForm").dispatchEvent(new Event("submit"))
-  }
-})
+$("googleRegister")?.addEventListener("click", async () => { try { const credential = await signInWithPopup(auth, googleProvider); const result = await getOrCreateUserProfile(credential.user); localStorage.setItem("currentUser", JSON.stringify({ id: result.user.id || credential.user.uid, uid: credential.user.uid, name: result.user.name || credential.user.displayName || "Usuario", surname: result.user.surname || "", email: credential.user.email, phone: result.user.phone || "", role: result.user.role || "cliente", isAdmin: false })); localStorage.setItem("currentUserEmail", credential.user.email || ""); location.href = "menu.html" } catch (error) { console.error("Error con Google:", error); notify("No fue posible registrarte con Google.", "error") } })
+
+$("email")?.setAttribute("autocomplete", "email"); $("password")?.setAttribute("autocomplete", "new-password")
