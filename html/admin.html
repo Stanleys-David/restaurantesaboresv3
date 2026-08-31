@@ -43,6 +43,10 @@
                         <i class="fas fa-box"></i>
                         Pedidos
                     </button>
+                    <button class="tab-btn" data-tab="tables">
+                        <i class="fas fa-chair"></i>
+                        Mesas
+                    </button>
                     <button class="tab-btn" data-tab="menu">
                         <i class="fas fa-eye"></i>
                         Ver Menú
@@ -58,6 +62,19 @@
                 </div>
 
                 <div class="tab-content">
+                    <div id="tables" class="tab-pane">
+                        <div class="card">
+                            <div class="card-header"><h2>Mesas y Áreas</h2><p class="section-subtitle">Administra la distribución del salón en tiempo real.</p></div>
+                            <div class="card-content">
+                                <div class="tables-toolbar"><select id="areaFilter"><option value="all">Todas las áreas</option></select><button id="refreshTables" class="btn btn-outline"><i class="fas fa-sync"></i> Actualizar</button></div>
+                                <div class="tables-layout">
+                                    <form id="areaForm" class="inline-form"><input id="areaName" type="text" placeholder="Nueva área" required><button class="btn btn-primary" type="submit">Agregar área</button></form>
+                                    <form id="tableForm" class="inline-form"><input id="tableName" type="text" placeholder="Mesa 1" required><input id="tableSeats" type="number" min="1" max="30" value="4" required><select id="tableArea" required><option value="">Área</option></select><button class="btn btn-success" type="submit">Agregar mesa</button></form>
+                                </div>
+                                <div id="areasList" class="areas-list"></div><div id="tablesGrid" class="tables-grid"></div>
+                            </div>
+                        </div>
+                    </div>
                     <div id="orders" class="tab-pane active">
                         <div class="card">
                             <div class="card-header">
@@ -160,5 +177,6 @@
     </div>
 
     <script type="module" src="../js/admin.js"></script>
+    <script type="module" src="../js/mesas.js"></script>
 </body>
 </html>

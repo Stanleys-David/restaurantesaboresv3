@@ -11,6 +11,7 @@ import {
   deleteDoc,
   query,
   where,
+  onSnapshot,
 } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-firestore.js"
 
 const firebaseConfig = {
@@ -159,6 +160,48 @@ export async function deleteProduct(productId) {
     console.error("Error al eliminar producto:", error)
     return { success: false, error: error.message }
   }
+}
+
+// ==========================================
+// FUNCIONES PARA ÁREAS Y MESAS
+// ==========================================
+
+export async function getAllAreas() {
+  const snapshot = await getDocs(collection(db, "areas"))
+  return { success: true, areas: snapshot.docs.map((item) => ({ id: item.id, ...item.data() })) }
+}
+
+export async function saveArea(areaData) {
+  const ref = await addDoc(collection(db, "areas"), { ...areaData, createdAt: new Date() })
+  return { success: true, id: ref.id }
+}
+
+export async function deleteArea(areaId) {
+  await deleteDoc(doc(db, "areas", areaId))
+  return { success: true }
+}
+
+export async function getAllTables() {
+  const snapshot = await getDocs(collection(db, "tables"))
+  return { success: true, tables: snapshot.docs.map((item) => ({ id: item.id, ...item.data() })) }
+}
+
+export async function saveTable(tableData, tableId = null) {
+  if (tableId) {
+    await updateDoc(doc(db, "tables", tableId), { ...tableData, updatedAt: new Date() })
+    return { success: true, id: tableId }
+  }
+  const ref = await addDoc(collection(db, "tables"), { ...tableData, status: "available", createdAt: new Date() })
+  return { success: true, id: ref.id }
+}
+
+export async function deleteTable(tableId) {
+  await deleteDoc(doc(db, "tables", tableId))
+  return { success: true }
+}
+
+export function subscribeToTables(callback) {
+  return onSnapshot(collection(db, "tables"), (snapshot) => callback(snapshot.docs.map((item) => ({ id: item.id, ...item.data() }))))
 }
 
 // ==========================================
