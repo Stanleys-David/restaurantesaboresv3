@@ -99,7 +99,8 @@
                             </div>
                         </div>
                     </div>
-                    <div id="orders" class="tab-pane active">
+                    <div id="cash" class="tab-pane"><div class="card"><div class="card-header"><h2>Cuadre de Caja</h2></div><div class="card-content"><form id="cashForm" class="cash-form"><div class="user-form-grid"><input id="cashDate" type="datetime-local" required><input id="cashUser" readonly><input id="cashSales" readonly placeholder="Total ventas"><input id="cashDelivered" readonly placeholder="Pedidos entregados"><input id="cashCancelled" readonly placeholder="Pedidos cancelados"><input id="cashCash" type="number" min="0" placeholder="Efectivo inicial"><input id="cashFinal" type="number" min="0" placeholder="Efectivo final"><input id="cashDifference" readonly placeholder="Diferencia"></div><div id="paymentBreakdown" class="payment-breakdown"></div><textarea id="cashNotes" placeholder="Observaciones"></textarea><button class="btn btn-primary" type="submit">Guardar cuadre</button></form></div></div></div>
+                    <div id="inventory" class="tab-pane"><div class="card"><div class="card-header"><h2>Inventario</h2></div><div class="card-content"><p class="empty-cart">La gestión de inventario estará disponible próximamente.</p></div></div></div>                    <div id="orders" class="tab-pane active">
                         <div class="card">
                             <div class="card-header">
                                 <h2>Lista de Pedidos</h2>

@@ -15,6 +15,7 @@ import {
   updateUserFromAdmin,
   deleteUserProfile,
   getUserByEmail,
+  saveCashClosing,
 } from "./firebase.js"
 
 const localUser = JSON.parse(localStorage.getItem("currentUser") || "null")
@@ -311,6 +312,9 @@ function setupTabs() {
 
 async function loadTabContent(tabId) {
   switch (tabId) {
+    case "cash":
+      await setupCashClosing()
+      break
     case "users":
       await renderUsers()
       break
@@ -1378,6 +1382,27 @@ window.sendOrderSummaryWhatsApp = sendOrderSummaryWhatsApp
 window.sendOrderStatusWhatsApp = sendOrderStatusWhatsApp
 
 
+
+async function setupCashClosing() {
+  const form = document.getElementById("cashForm")
+  if (!form || form.dataset.ready) return
+  form.dataset.ready = "true"
+  const result = await getAllOrders()
+  const today = new Date().toISOString().slice(0, 10)
+  const ordersToday = (result.orders || []).filter((order) => { const date = order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000) : new Date(order.createdAt || order.date || 0); return date.toISOString().slice(0, 10) === today })
+  const delivered = ordersToday.filter((order) => order.status === "entregado")
+  const cancelled = ordersToday.filter((order) => order.status === "cancelado")
+  const payments = delivered.reduce((total, order) => { const method = order.details?.paymentMethod || "No especificado"; total[method] = (total[method] || 0) + Number(order.total || 0); return total }, {})
+  document.getElementById("cashDate").value = new Date().toISOString().slice(0, 16)
+  document.getElementById("cashUser").value = `${user?.name || ""} ${user?.surname || ""}`.trim() || user?.email || "Administrador"
+  document.getElementById("cashSales").value = `$${delivered.reduce((sum, order) => sum + Number(order.total || 0), 0).toLocaleString("es-CO")}`
+  document.getElementById("cashDelivered").value = `${delivered.length} entregados`
+  document.getElementById("cashCancelled").value = `${cancelled.length} cancelados`
+  document.getElementById("paymentBreakdown").innerHTML = Object.entries(payments).map(([method, total]) => `<span>${escapeHtml(method)}: <strong>$${total.toLocaleString("es-CO")}</strong></span>`).join("") || "Sin ventas entregadas"
+  const difference = () => { const initial = Number(document.getElementById("cashCash").value || 0); const final = Number(document.getElementById("cashFinal").value || 0); document.getElementById("cashDifference").value = `$${(final - initial).toLocaleString("es-CO")}` }
+  document.getElementById("cashCash").addEventListener("input", difference); document.getElementById("cashFinal").addEventListener("input", difference)
+  form.addEventListener("submit", async (event) => { event.preventDefault(); const saved = await saveCashClosing({ date: document.getElementById("cashDate").value, userId: user?.uid || "", userName: document.getElementById("cashUser").value, salesTotal: delivered.reduce((sum, order) => sum + Number(order.total || 0), 0), paymentBreakdown: payments, deliveredCount: delivered.length, cancelledCount: cancelled.length, cashInitial: Number(document.getElementById("cashCash").value || 0), cashFinal: Number(document.getElementById("cashFinal").value || 0), difference: Number(document.getElementById("cashFinal").value || 0) - Number(document.getElementById("cashCash").value || 0), notes: document.getElementById("cashNotes").value.trim() }); showNotification(saved.success ? "Cuadre guardado correctamente" : "No fue posible guardar el cuadre", saved.success ? "success" : "error") })
+}
 const escapeHtml = (value) => String(value ?? "").replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character])
 
 async function renderUsers() {

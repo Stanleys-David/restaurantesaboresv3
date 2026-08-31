@@ -215,6 +215,11 @@ export async function getAllUsers() {
   }
 }
 
+
+export async function saveCashClosing(data) {
+  try { const ref = await addDoc(collection(db, "cashClosings"), { ...data, createdAt: new Date() }); return { success: true, id: ref.id } }
+  catch (error) { console.error("Error al guardar cuadre:", error); return { success: false, error: error.message } }
+}
 // ==========================================
 // FUNCIONES PARA PRODUCTOS
 // ==========================================

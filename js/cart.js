@@ -1,4 +1,4 @@
-import { saveOrder, getAllTables, updateTableStatus, auth, signOut } from "./firebase.js"
+import { saveOrder, getAllTables, updateTableStatus, auth, signOut, getAllUsers } from "./firebase.js"
 
 let cart = JSON.parse(localStorage.getItem("cart") || "[]")
 
@@ -181,6 +181,21 @@ async function placeOrder() {
 window.updateQuantity = updateQuantity
 window.removeItem = removeItem
 
+
+async function autocompleteCustomer() {
+  const type = document.getElementById("orderType")?.value
+  if (!["domicilio", "llevar"].includes(type)) return
+  const name = document.getElementById("customerName").value.trim().toLowerCase()
+  const phone = document.getElementById("customerPhone").value.replace(/\D/g, "")
+  if (!name && phone.length < 7) return
+  const result = await getAllUsers()
+  const match = result.users?.find((item) => (phone && String(item.phone || "").replace(/\D/g, "") === phone) || (name && `${item.name || ""} ${item.surname || ""}`.trim().toLowerCase() === name))
+  if (!match) return
+  document.getElementById("customerName").value = `${match.name || ""} ${match.surname || ""}`.trim()
+  document.getElementById("customerPhone").value = match.phone || document.getElementById("customerPhone").value
+  document.getElementById("customerAddress").value = match.address || document.getElementById("customerAddress").value
+  showNotification("Datos del cliente cargados automáticamente", "success")
+}
 document.addEventListener("DOMContentLoaded", () => {
   const user = JSON.parse(localStorage.getItem("currentUser") || "null")
   if (user) {
@@ -198,6 +213,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   loadAvailableTables()
 
+  document.getElementById("customerName").addEventListener("blur", autocompleteCustomer)
+  document.getElementById("customerPhone").addEventListener("blur", autocompleteCustomer)
   document.getElementById("orderType").addEventListener("change", function () {
     const type = this.value
     const address = document.getElementById("customerAddress")
