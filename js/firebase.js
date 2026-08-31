@@ -1,5 +1,5 @@
 // Configuración de Firebase
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-app.js"
+import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-app.js"
 import { getAuth, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-auth.js"
 import {
   getFirestore,
@@ -48,11 +48,69 @@ export async function getUserProfile(uid) {
 export async function saveUserProfile(user, profile = {}) {
   const existing = await getUserProfile(user.uid)
   if (existing.success) return existing
-  const docRef = await addDoc(collection(db, "users"), { uid: user.uid, email: user.email, name: profile.name || user.displayName?.split(" ")[0] || "Usuario", surname: profile.surname || user.displayName?.split(" ").slice(1).join(" ") || "", phone: profile.phone || "", role: "cliente", isAdmin: false, provider: user.providerData[0]?.providerId || "password", createdAt: new Date() })
-  return { success: true, user: { id: docRef.id, uid: user.uid, email: user.email, ...profile, role: "cliente", isAdmin: false } }
+  const userData = {
+    uid: user.uid,
+    email: user.email || "",
+    name: profile.name || user.displayName?.split(" ")[0] || "Usuario",
+    surname: profile.surname || user.displayName?.split(" ").slice(1).join(" ") || "",
+    phone: profile.phone || "",
+    role: profile.role || "cliente",
+    isAdmin: Boolean(profile.isAdmin || profile.role === "admin"),
+    photoURL: profile.photoURL || user.photoURL || "",
+    address: profile.address || "",
+    addressReference: profile.addressReference || "",
+    provider: user.providerData[0]?.providerId || "password",
+    createdAt: new Date(),
+  }
+  const docRef = await addDoc(collection(db, "users"), userData)
+  return { success: true, user: { id: docRef.id, ...userData } }
 }
 
-export async function getOrCreateUserProfile(user, profile = {}) { return (await getUserProfile(user.uid)).success ? getUserProfile(user.uid) : saveUserProfile(user, profile) }
+export async function getOrCreateUserProfile(user, profile = {}) {
+  const existing = await getUserProfile(user.uid)
+  if (!existing.success) return saveUserProfile(user, profile)
+
+  const current = existing.user
+  const updated = {
+    uid: user.uid,
+    email: user.email || current.email || "",
+    name: current.name || profile.name || user.displayName?.split(" ")[0] || "Usuario",
+    surname: current.surname || profile.surname || user.displayName?.split(" ").slice(1).join(" ") || "",
+    phone: current.phone || profile.phone || "",
+    role: current.role || (current.isAdmin ? "admin" : "cliente"),
+    isAdmin: Boolean(current.isAdmin || current.role === "admin"),
+    photoURL: current.photoURL || profile.photoURL || user.photoURL || "",
+    address: current.address || profile.address || "",
+    addressReference: current.addressReference || profile.addressReference || "",
+    provider: user.providerData[0]?.providerId || current.provider || "password",
+    updatedAt: new Date(),
+  }
+  await updateDoc(doc(db, "users", current.id), updated)
+  return { success: true, user: { id: current.id, ...current, ...updated } }
+}
+export async function updateUserProfile(uid, profileData) {
+  try {
+    const existing = await getUserProfile(uid)
+    if (!existing.success) return { success: false, error: "Perfil no encontrado" }
+
+    const { id, uid: profileUid, email, role, isAdmin, createdAt, ...currentProfile } = existing.user
+    const updatedProfile = {
+      ...currentProfile,
+      ...profileData,
+      uid: profileUid,
+      email,
+      role,
+      isAdmin: Boolean(isAdmin || role === "admin"),
+      updatedAt: new Date(),
+    }
+
+    await updateDoc(doc(db, "users", id), updatedProfile)
+    return { success: true, user: { id, ...updatedProfile } }
+  } catch (error) {
+    console.error("Error al actualizar perfil:", error)
+    return { success: false, error: error.message }
+  }
+}
 
 // ==========================================
 // FUNCIONES PARA USUARIOS
@@ -90,6 +148,59 @@ export async function getUserByEmail(email) {
   }
 }
 
+export async function createUserFromAdmin(account, profile) {
+  let secondaryApp = null
+  try {
+    secondaryApp = initializeApp(firebaseConfig, `admin-user-${Date.now()}-${Math.random().toString(36).slice(2)}`)
+    const secondaryAuth = getAuth(secondaryApp)
+    const credential = await createUserWithEmailAndPassword(secondaryAuth, account.email, account.password)
+    const docRef = await addDoc(collection(db, "users"), {
+      uid: credential.user.uid,
+      email: credential.user.email,
+      name: profile.name,
+      surname: profile.surname || "",
+      phone: profile.phone || "",
+      address: profile.address || "",
+      addressReference: profile.addressReference || "",
+      photoURL: profile.photoURL || "",
+      role: profile.role || "cliente",
+      isAdmin: Boolean(profile.isAdmin || profile.role === "admin"),
+      provider: "password",
+      createdAt: new Date(),
+    })
+    return { success: true, user: { id: docRef.id, uid: credential.user.uid } }
+  } catch (error) {
+    console.error("Error al crear usuario desde administración:", error)
+    return { success: false, error: error.message, code: error.code }
+  } finally {
+    if (secondaryApp) await deleteApp(secondaryApp)
+  }
+}
+
+export async function updateUserFromAdmin(userId, userData) {
+  try {
+    const { id, uid, email, createdAt, ...editableData } = userData
+    await updateDoc(doc(db, "users", userId), {
+      ...editableData,
+      isAdmin: Boolean(editableData.isAdmin || editableData.role === "admin"),
+      updatedAt: new Date(),
+    })
+    return { success: true }
+  } catch (error) {
+    console.error("Error al actualizar usuario:", error)
+    return { success: false, error: error.message }
+  }
+}
+
+export async function deleteUserProfile(userId) {
+  try {
+    await deleteDoc(doc(db, "users", userId))
+    return { success: true }
+  } catch (error) {
+    console.error("Error al eliminar usuario:", error)
+    return { success: false, error: error.message }
+  }
+}
 export async function getAllUsers() {
   try {
     const querySnapshot = await getDocs(collection(db, "users"))

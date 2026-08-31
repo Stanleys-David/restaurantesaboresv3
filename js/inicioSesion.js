@@ -5,7 +5,7 @@ const notify = (message, type = "info") => { const el = $("notification"); if (e
 const setBusy = (busy) => { const button = $("loginButton"); if (button) { button.disabled = busy; $("loginText").textContent = busy ? "Iniciando sesión..." : "Iniciar Sesión" } }
 
 function sessionFrom(user, profile) {
-  const session = { id: profile.id || user.uid, uid: user.uid, name: profile.name || user.displayName || "Usuario", surname: profile.surname || "", email: user.email, phone: profile.phone || "", role: profile.role || "cliente", isAdmin: profile.role === "admin" }
+  const session = { id: profile.id || user.uid, uid: user.uid, name: profile.name || user.displayName || "Usuario", surname: profile.surname || "", email: user.email, phone: profile.phone || "", address: profile.address || "", addressReference: profile.addressReference || "", photoURL: profile.photoURL || user.photoURL || "", role: profile.role || "cliente", isAdmin: Boolean(profile.isAdmin || profile.role === "admin") }
   localStorage.setItem("currentUser", JSON.stringify(session)); localStorage.setItem("currentUserEmail", user.email || ""); return session
 }
 function redirectByRole(session) { window.location.href = session.role === "admin" ? "admin.html" : "menu.html" }

@@ -10,6 +10,11 @@ import {
   signOut,
   onAuthStateChanged,
   releaseTableForOrder,
+  getAllUsers,
+  createUserFromAdmin,
+  updateUserFromAdmin,
+  deleteUserProfile,
+  getUserByEmail,
 } from "./firebase.js"
 
 const localUser = JSON.parse(localStorage.getItem("currentUser") || "null")
@@ -39,6 +44,7 @@ let editingProduct = null
 let notifications = []
 let lastOrderCount = 0
 let allOrders = [] // Variable global para almacenar todos los pedidos
+let users = []
 
 // Sistema de notificaciones
 function initNotificationSystem() {
@@ -305,6 +311,9 @@ function setupTabs() {
 
 async function loadTabContent(tabId) {
   switch (tabId) {
+    case "users":
+      await renderUsers()
+      break
     case "orders":
       await renderOrders()
       break
@@ -446,6 +455,12 @@ async function renderOrders() {
                       
                       <button class="btn btn-outline" onclick="printReceipt('${orderId}')">
                           <i class="fas fa-file-invoice"></i> Recibo
+                      </button>
+                      <button class="btn btn-outline" onclick="sendOrderSummaryWhatsApp('${orderId}')">
+                          <i class="fab fa-whatsapp"></i> Enviar resumen por WhatsApp
+                      </button>
+                      <button class="btn btn-outline" onclick="sendOrderStatusWhatsApp('${orderId}')">
+                          <i class="fab fa-whatsapp"></i> Notificar estado por WhatsApp
                       </button>
                       
                       <button class="btn btn-outline" onclick="viewOrderDetails('${orderId}')">
@@ -1317,6 +1332,41 @@ function getStatusColor(status) {
 }
 
 // Funciones globales para onclick
+
+async function getOrderPhone(order) {
+  if (order.phone) return order.phone
+  if (!order.customerEmail) return ""
+  const result = await getUserByEmail(order.customerEmail)
+  return result.success ? result.user.phone || "" : ""
+}
+
+function whatsappPhone(phone) {
+  const digits = String(phone || "").replace(/\D/g, "")
+  if (!digits) return ""
+  return digits.length === 10 ? `57${digits}` : digits
+}
+
+async function openOrderWhatsApp(orderId, messageBuilder) {
+  const order = findOrderById(orderId)
+  if (!order) return showNotification("No se encontró el pedido", "error")
+  const phone = whatsappPhone(await getOrderPhone(order))
+  if (!phone) return showNotification("El cliente no tiene un teléfono registrado", "error")
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(messageBuilder(order))}`, "_blank", "noopener")
+}
+
+function orderNumber(order) { return order.id || order.firebaseId || "" }
+
+function sendOrderSummaryWhatsApp(orderId) {
+  openOrderWhatsApp(orderId, (order) => {
+    const products = (order.items || []).map((item) => `- ${item.name || "Producto"} x${item.quantity || 1}`).join("\n") || "- Sin productos"
+    const table = order.details?.tableName || order.tableName || "No aplica"
+    return `Restaurante Sabores\nResumen del pedido #${orderNumber(order)}\nCliente: ${order.customerName || "Cliente"}\nMesa: ${table}\nProductos:\n${products}\nTotal: $${Number(order.total || 0).toLocaleString("es-CO")}`
+  })
+}
+
+function sendOrderStatusWhatsApp(orderId) {
+  openOrderWhatsApp(orderId, (order) => `Hola ${order.customerName || "cliente"}, su pedido #${orderNumber(order)} está en estado: ${order.status || "pendiente"}`)
+}
 window.updateOrderStatus = updateOrderStatusAdmin
 window.editProduct = editProduct
 window.deleteProductAdmin = deleteProductAdmin
@@ -1324,7 +1374,83 @@ window.renderOrders = renderOrders
 window.printKitchenOrder = printKitchenOrderFunction
 window.printReceipt = printReceiptFunction
 window.viewOrderDetails = viewOrderDetailsFunction
+window.sendOrderSummaryWhatsApp = sendOrderSummaryWhatsApp
+window.sendOrderStatusWhatsApp = sendOrderStatusWhatsApp
 
+
+const escapeHtml = (value) => String(value ?? "").replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character])
+
+async function renderUsers() {
+  const usersList = document.getElementById("usersList")
+  if (!usersList) return
+  usersList.innerHTML = '<p class="empty-cart"><i class="fas fa-spinner fa-spin"></i> Cargando usuarios...</p>'
+  const result = await getAllUsers()
+  if (!result.success) {
+    usersList.innerHTML = '<p class="empty-cart">No fue posible cargar los usuarios.</p>'
+    return showNotification("Error al cargar usuarios", "error")
+  }
+  users = result.users || []
+  filterUsers()
+}
+
+function filterUsers() {
+  const usersList = document.getElementById("usersList")
+  const search = document.getElementById("userSearch")?.value.trim().toLowerCase() || ""
+  const role = document.getElementById("userRoleFilter")?.value || ""
+  const filteredUsers = users.filter((item) => {
+    const itemRole = item.role || (item.isAdmin ? "admin" : "cliente")
+    const searchable = `${item.name || ""} ${item.surname || ""} ${item.email || ""}`.toLowerCase()
+    return (!search || searchable.includes(search)) && (!role || itemRole === role)
+  })
+  usersList.innerHTML = filteredUsers.length ? filteredUsers.map((item) => {
+    const itemRole = item.role || (item.isAdmin ? "admin" : "cliente")
+    return `<article class="user-item"><div class="user-avatar">${item.photoURL ? `<img src="${escapeHtml(item.photoURL)}" alt="">` : `<i class="fas fa-user"></i>`}</div><div class="user-data"><h3>${escapeHtml(item.name)} ${escapeHtml(item.surname)}</h3><p>${escapeHtml(item.email)} · ${escapeHtml(item.phone || "Sin teléfono")}</p><span class="user-role-badge">${escapeHtml(itemRole)}</span></div><div class="user-actions"><button class="btn btn-outline" onclick="editUser('${item.id}')"><i class="fas fa-edit"></i> Editar</button><button class="btn btn-outline" onclick="removeUser('${item.id}')"><i class="fas fa-trash"></i> Eliminar</button></div></article>`
+  }).join("") : '<p class="empty-cart">No se encontraron usuarios.</p>'
+}
+
+function openUserEditor(userId) {
+  const item = users.find((candidate) => candidate.id === userId)
+  if (!item) return
+  const modal = document.createElement("div")
+  modal.className = "modal"
+  modal.style.display = "flex"
+  modal.innerHTML = `<div class="modal-content user-editor"><button class="close" type="button">&times;</button><h2>Editar usuario</h2><form id="editUserForm" class="user-form"><div class="user-form-grid"><input id="editName" required value="${escapeHtml(item.name)}"><input id="editSurname" value="${escapeHtml(item.surname)}"><input id="editPhone" value="${escapeHtml(item.phone)}"><input id="editAddress" value="${escapeHtml(item.address)}"><select id="editRole"><option value="cliente">Cliente</option><option value="mesero">Mesero</option><option value="admin">Administrador</option></select><label class="admin-check"><input id="editIsAdmin" type="checkbox" ${item.isAdmin || item.role === "admin" ? "checked" : ""}> Es administrador</label></div><div class="form-buttons"><button class="btn btn-primary">Guardar cambios</button><button type="button" class="btn btn-outline">Cancelar</button></div></form></div>`
+  document.body.appendChild(modal)
+  document.getElementById("editRole").value = item.role || (item.isAdmin ? "admin" : "cliente")
+  modal.querySelectorAll("button.close, .btn-outline").forEach((button) => button.addEventListener("click", () => modal.remove()))
+  modal.querySelector("form").addEventListener("submit", async (event) => {
+    event.preventDefault()
+    const role = document.getElementById("editRole").value
+    const result = await updateUserFromAdmin(item.id, { name: document.getElementById("editName").value.trim(), surname: document.getElementById("editSurname").value.trim(), phone: document.getElementById("editPhone").value.trim(), address: document.getElementById("editAddress").value.trim(), role, isAdmin: document.getElementById("editIsAdmin").checked || role === "admin" })
+    if (!result.success) return showNotification("No fue posible actualizar el usuario", "error")
+    modal.remove(); showNotification("Usuario actualizado", "success"); renderUsers()
+  })
+}
+
+async function removeUser(userId) {
+  const item = users.find((candidate) => candidate.id === userId)
+  if (!item || !confirm(`¿Eliminar el perfil de ${item.name || item.email}?`)) return
+  const result = await deleteUserProfile(userId)
+  if (!result.success) return showNotification("No fue posible eliminar el usuario", "error")
+  showNotification("Perfil de usuario eliminado", "success")
+  renderUsers()
+}
+
+function setupUsers() {
+  document.getElementById("userSearch")?.addEventListener("input", filterUsers)
+  document.getElementById("userRoleFilter")?.addEventListener("change", filterUsers)
+  document.getElementById("showUserForm")?.addEventListener("click", () => document.getElementById("userForm").hidden = false)
+  document.getElementById("cancelUserForm")?.addEventListener("click", () => { document.getElementById("userForm").reset(); document.getElementById("userForm").hidden = true })
+  document.getElementById("userForm")?.addEventListener("submit", async (event) => {
+    event.preventDefault()
+    const role = document.getElementById("newUserRole").value
+    const result = await createUserFromAdmin({ email: document.getElementById("newUserEmail").value.trim(), password: document.getElementById("newUserPassword").value }, { name: document.getElementById("newUserName").value.trim(), surname: document.getElementById("newUserSurname").value.trim(), phone: document.getElementById("newUserPhone").value.trim(), address: document.getElementById("newUserAddress").value.trim(), role, isAdmin: role === "admin" })
+    if (!result.success) return showNotification(result.code === "auth/email-already-in-use" ? "El correo ya está registrado" : "No fue posible crear el usuario", "error")
+    event.target.reset(); event.target.hidden = true; showNotification("Usuario creado correctamente", "success"); renderUsers()
+  })
+}
+window.editUser = openUserEditor
+window.removeUser = removeUser
 document.addEventListener("DOMContentLoaded", async () => {
   console.log("DOM cargado en admin.js")
 
@@ -1338,6 +1464,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   setupTabs()
+  setupUsers()
   await loadProducts()
   await loadTabContent("orders")
 

@@ -21,6 +21,10 @@
                     </div>
 
                     <div class="header-right">
+                        <a href="perfil.html" class="btn btn-outline">
+                            <i class="fas fa-user-circle"></i>
+                            Mi Perfil
+                        </a>
                         <button class="btn btn-outline notifications-btn" onclick="showNotificationPanel()">
                             <i class="fas fa-bell"></i>
                             Notificaciones
@@ -43,7 +47,10 @@
                         <i class="fas fa-box"></i>
                         Pedidos
                     </button>
-                    <button class="tab-btn" data-tab="tables">
+                    <button class="tab-btn" data-tab="users">
+                        <i class="fas fa-users"></i>
+                        Usuarios
+                    </button>                    <button class="tab-btn" data-tab="tables">
                         <i class="fas fa-chair"></i>
                         Mesas
                     </button>
@@ -62,7 +69,24 @@
                 </div>
 
                 <div class="tab-content">
-                    <div id="tables" class="tab-pane">
+                    <div id="users" class="tab-pane">
+                        <div class="card">
+                            <div class="card-header"><h2>Usuarios</h2><p class="section-subtitle">Administra las cuentas y sus permisos.</p></div>
+                            <div class="card-content">
+                                <div class="users-toolbar">
+                                    <input id="userSearch" type="search" placeholder="Buscar por nombre o correo">
+                                    <select id="userRoleFilter"><option value="">Todos los roles</option><option value="cliente">Clientes</option><option value="mesero">Meseros</option><option value="admin">Administradores</option></select>
+                                    <button class="btn btn-primary" id="showUserForm"><i class="fas fa-user-plus"></i> Nuevo usuario</button>
+                                </div>
+                                <form id="userForm" class="user-form" hidden>
+                                    <h3>Crear usuario</h3>
+                                    <div class="user-form-grid"><input id="newUserName" placeholder="Nombre" required><input id="newUserSurname" placeholder="Apellido"><input id="newUserEmail" type="email" placeholder="Correo" required><input id="newUserPassword" type="password" minlength="6" placeholder="Contraseña (mínimo 6)" required><input id="newUserPhone" placeholder="Teléfono"><input id="newUserAddress" placeholder="Dirección"><select id="newUserRole"><option value="cliente">Cliente</option><option value="mesero">Mesero</option><option value="admin">Administrador</option></select></div>
+                                    <div class="form-buttons"><button class="btn btn-primary" type="submit">Crear usuario</button><button class="btn btn-outline" type="button" id="cancelUserForm">Cancelar</button></div>
+                                </form>
+                                <div id="usersList" class="users-list"></div>
+                            </div>
+                        </div>
+                    </div>                    <div id="tables" class="tab-pane">
                         <div class="card">
                             <div class="card-header"><h2>Mesas y Áreas</h2><p class="section-subtitle">Administra la distribución del salón en tiempo real.</p></div>
                             <div class="card-content">
@@ -71,7 +95,7 @@
                                     <form id="areaForm" class="inline-form"><input id="areaName" type="text" placeholder="Nueva área" required><button class="btn btn-primary" type="submit">Agregar área</button></form>
                                     <form id="tableForm" class="inline-form"><input id="tableName" type="text" placeholder="Mesa 1" required><input id="tableSeats" type="number" min="1" max="30" value="4" required><select id="tableArea" required><option value="">Área</option></select><button class="btn btn-success" type="submit">Agregar mesa</button></form>
                                 </div>
-                                <div id="areasList" class="areas-list"></div><div id="tablesGrid" class="tables-grid"></div>
+                                <div id="areasList" class="areas-list"></div><div class="table-legend"><span><i class="legend-dot available"></i> Disponible</span><span><i class="legend-dot reserved"></i> Reservado</span><span><i class="legend-dot occupied"></i> Ocupado</span></div><div id="tablesPlan" class="tables-plan" aria-label="Plano visual de mesas"></div><div id="tablesGrid" class="tables-grid" hidden></div>
                             </div>
                         </div>
                     </div>
