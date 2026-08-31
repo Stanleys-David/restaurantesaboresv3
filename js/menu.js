@@ -419,6 +419,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const userInfo = document.getElementById("userInfo")
   const guestInfo = document.getElementById("guestInfo")
   const adminBtn = document.getElementById("adminBtn")
+  const waiterBtn = document.getElementById("waiterBtn")
   const userName = document.getElementById("userName")
   const logoutBtn = document.getElementById("logoutBtn")
 
@@ -500,7 +501,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     userInfo.style.display = "flex"
     userName.textContent = `¡Hola! ${currentUser.name}`
 
-    if (currentUser.isAdmin) {
+    waiterBtn.style.display = currentUser.role === "mesero" ? "block" : "none"
+
+    if (currentUser.isAdmin || currentUser.role === "admin") {
       adminBtn.style.display = "block"
       userName.textContent = `¡Hola! ${currentUser.name} (Admin)`
     } else {
@@ -511,6 +514,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     userInfo.style.display = "none"
     guestInfo.style.display = "block"
     adminBtn.style.display = "none"
+    waiterBtn.style.display = "none"
   }
 
   // Rest of the event listeners remain the same...
