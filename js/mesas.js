@@ -5,7 +5,7 @@ let tables = []
 let selectedArea = "all"
 
 const escapeHtml = (value) => String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char])
-const statusLabels = { available: "Libre", libre: "Libre", occupied: "Ocupada", occupied: "Ocupada", reserved: "Reservada", cuenta_solicitada: "Cuenta solicitada", en_limpieza: "En limpieza" }
+const statusLabels = { available: "Libre", libre: "Libre", occupied: "Ocupada", reserved: "Reservada", cuenta_solicitada: "Cuenta solicitada", en_limpieza: "En limpieza" }
 const areaLabel = (id) => areas.find((area) => area.id === id)?.name || "Sin área"
 
 function render() {
