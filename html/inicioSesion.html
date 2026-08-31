@@ -6,6 +6,8 @@
     <title>Restaurante Sabores - Inicio de Sesión</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/inicioSesion.css">
+    <link rel="manifest" href="../manifest.webmanifest">
+    <meta name="theme-color" content="#ea580c">
 </head>
 <body>
     <div class="min-h-screen bg-gradient">
@@ -32,11 +34,15 @@
                                 <input type="password" id="password" placeholder="Contraseña" required>
                             </div>
 
+                            <button type="button" id="forgotPassword" class="link-button">¿Olvidaste tu contraseña?</button>
+
                             <div class="button-group">
-                                <button type="submit" class="btn btn-primary">
+                                <button id="loginButton" type="submit" class="btn btn-primary">
                                     <span id="loginText">Iniciar Sesión</span>
                                     <i class="fas fa-arrow-right"></i>
                                 </button>
+
+                                <button type="button" id="googleLogin" class="btn btn-google"><i class="fab fa-google"></i> Continuar con Google</button>
 
                                 <a href="register.html" class="btn btn-outline">
                                     <i class="fas fa-user"></i>
@@ -57,5 +63,6 @@
     <div id="notification" class="notification"></div>
 
     <script type="module" src="../js/inicioSesion.js"></script>
+    <script type="module" src="../js/pwa.js"></script>
 </body>
 </html>

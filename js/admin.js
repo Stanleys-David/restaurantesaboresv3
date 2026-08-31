@@ -5,13 +5,33 @@ import {
   getAllProducts,
   updateProduct,
   deleteProduct,
+  auth,
+  getUserProfile,
+  signOut,
+  onAuthStateChanged,
+  releaseTableForOrder,
 } from "./firebase.js"
 
-const user = JSON.parse(localStorage.getItem("currentUser") || "null")
+const localUser = JSON.parse(localStorage.getItem("currentUser") || "null")
+let user = localUser
 
-if (!user || user.role !== "admin") {
+if (!localUser || localUser.role !== "admin") {
   alert("Acceso denegado. Solo los administradores pueden acceder a esta página.")
   window.location.href = "inicioSesion.html"
+}
+
+if (auth) {
+  onAuthStateChanged(auth, async (firebaseUser) => {
+    if (!firebaseUser) return window.location.href = "inicioSesion.html"
+    const profile = await getUserProfile(firebaseUser.uid)
+    if (!profile.success || profile.user.role !== "admin") {
+      alert("Acceso denegado. Solo los administradores pueden acceder a esta página.")
+      await signOut(auth)
+      window.location.href = "inicioSesion.html"
+    } else {
+      user = profile.user
+    }
+  })
 }
 
 let products = []
@@ -394,7 +414,7 @@ async function renderOrders() {
                   <div>
                       <h3>Pedido #${order.id || orderId}</h3>
                       <p>${order.customerName || "Cliente"} - ${order.phone || "Sin teléfono"}</p>
-                      <p>${orderDate} - ${order.details?.orderType || "N/A"}</p>
+                      <p>${orderDate} - ${order.details?.orderType || "N/A"}${order.details?.tableName ? ` - ${order.details.tableName}` : ""}</p>
                   </div>
                   <div class="text-right">
                       <div class="status-badge status-${order.status || "pendiente"}">${order.status || "pendiente"}</div>
@@ -458,6 +478,9 @@ async function updateOrderStatusAdmin(orderId, newStatus) {
     const result = await updateOrderStatus(orderId, newStatus)
 
     if (result.success) {
+      if (["entregado", "cancelado"].includes(newStatus)) {
+        await releaseTableForOrder(orderId)
+      }
       showNotification(`Estado del pedido #${orderId} actualizado a ${newStatus}`, "success")
 
       // Actualizar la UI
@@ -1320,7 +1343,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.getElementById("cancelEdit").addEventListener("click", resetProductForm)
 
-  document.getElementById("logoutBtn").addEventListener("click", () => {
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
+    await signOut(auth)
     localStorage.removeItem("currentUser")
     localStorage.removeItem("currentUserEmail")
     localStorage.removeItem("cart")

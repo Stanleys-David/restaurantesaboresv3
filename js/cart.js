@@ -1,4 +1,4 @@
-import { saveOrder } from "./firebase.js"
+import { saveOrder, getAllTables, updateTableStatus, auth, signOut } from "./firebase.js"
 
 let cart = JSON.parse(localStorage.getItem("cart") || "[]")
 
@@ -114,6 +114,8 @@ async function placeOrder() {
     address: document.getElementById("customerAddress").value,
     arrivalTime: document.getElementById("arrivalTime").value,
     orderType: document.getElementById("orderType").value,
+    tableId: document.getElementById("tableId")?.value || "",
+    tableName: document.getElementById("tableId")?.selectedOptions[0]?.textContent || "",
     paymentMethod: document.getElementById("paymentMethod").value,
     tip: Number.parseInt(document.getElementById("tip").value) || 0,
   }
@@ -127,6 +129,11 @@ async function placeOrder() {
 
   if (orderDetails.orderType === "domicilio" && !orderDetails.address) {
     showNotification("Por favor ingresa la dirección de entrega", "error")
+    return
+  }
+
+  if (orderDetails.orderType === "restaurante" && !orderDetails.tableId) {
+    showNotification("Selecciona una mesa para comer en el restaurante", "error")
     return
   }
 
@@ -157,6 +164,7 @@ async function placeOrder() {
       localStorage.setItem("cart", JSON.stringify(cart))
       console.log("Carrito limpiado")
 
+      if (orderDetails.tableId) await updateTableStatus(orderDetails.tableId, "occupied", result.id)
       showNotification("¡Pedido realizado con éxito!", "success")
       setTimeout(() => (window.location.href = "orders.html"), 2000)
     } else {
@@ -182,10 +190,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
   renderCartItems()
 
+  const tableSelect = document.getElementById("tableId")
+  const loadAvailableTables = async () => {
+    if (!tableSelect) return
+    const result = await getAllTables()
+    tableSelect.innerHTML = `<option value="">Selecciona una mesa</option>${(result.tables || []).filter((table) => table.status !== "occupied").map((table) => `<option value="${table.id}">${table.name} · ${table.seats} puestos</option>`).join("")}`
+  }
+  loadAvailableTables()
+
   document.getElementById("orderType").addEventListener("change", function () {
     const type = this.value
     const address = document.getElementById("customerAddress")
     const arrivalTime = document.getElementById("arrivalTime")
+    tableSelect.style.display = type === "restaurante" ? "block" : "none"
+    tableSelect.required = type === "restaurante"
+    if (type === "restaurante") loadAvailableTables()
 
     address.style.display = type === "domicilio" ? "block" : "none"
     address.required = type === "domicilio"

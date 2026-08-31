@@ -1,0 +1,14 @@
+{
+  "name": "Restaurante Sabores",
+  "short_name": "Sabores",
+  "start_url": "/html/menu.html",
+  "display": "standalone",
+  "background_color": "#fff7ed",
+  "theme_color": "#ea580c",
+  "lang": "es",
+  "scope": "/",
+  "description": "Pedidos, mesas y gestión de Restaurante Sabores",
+  "icons": [
+    { "src": "/favicon.ico", "sizes": "any", "type": "image/x-icon" }
+  ]
+}

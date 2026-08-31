@@ -6,7 +6,10 @@
     <title>Restaurante Sabores - Carrito</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
-<link rel="stylesheet" href="../css/cart.css">
+    <link rel="stylesheet" href="../css/cart.css">
+    <link rel="manifest" href="../manifest.webmanifest">
+    <meta name="theme-color" content="#ea580c">
+
 </head>
 <body>
     <div class="min-h-screen bg-gradient">
@@ -53,6 +56,9 @@
                                     <option value="domicilio">Domicilio</option>
                                     <option value="llevar">Para Llevar</option>
                                     <option value="restaurante">Comer en el Restaurante</option>
+                                </select>
+                                <select id="tableId" class="form-select" style="display: none; margin-top: .75rem;">
+                                    <option value="">Selecciona una mesa</option>
                                 </select>
                             </div>
 
@@ -107,5 +113,6 @@
     <div id="notification" class="notification"></div>
 
     <script type="module" src="../js/cart.js"></script>
+  <script type="module" src="../js/pwa.js"></script>
 </body>
 </html>
