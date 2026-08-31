@@ -355,7 +355,13 @@ ${order.details?.tip ? `• Propina: $${order.details.tip.toLocaleString()}` : "
 ${order.details?.arrivalTime ? `• Hora de llegada: ${order.details.arrivalTime}` : ""}
     `
 
-    alert(orderDetails)
+    const modal = document.createElement("div")
+    modal.className = "modal"
+    modal.style.display = "flex"
+    modal.innerHTML = `<div class="modal-content customer-order-modal"><button class="close">&times;</button><h2>Pedido #${order.id || order.firebaseId || "N/A"}</h2><div class="customer-order-meta"><p><strong>Cliente:</strong> ${order.customerName || "N/A"}</p><p><strong>Teléfono:</strong> ${order.phone || "N/A"}</p><p><strong>Tipo:</strong> ${order.details?.orderType || "N/A"}</p><p><strong>Pago:</strong> ${order.details?.paymentMethod || "N/A"}</p><p><strong>Fecha:</strong> ${orderDate}</p><p><strong>Estado:</strong> ${getStatusText(order.status || "pendiente")}</p></div><div class="customer-order-products">${(order.items || []).map((item) => `<div><span>${item.name || "Producto"} x${item.quantity || 1}<small>$${Number(item.price || 0).toLocaleString()} c/u</small></span><strong>$${(Number(item.price || 0) * Number(item.quantity || 1)).toLocaleString()}</strong></div>`).join("") || "Sin productos"}</div><p class="customer-order-total">Total: $${Number(order.total || 0).toLocaleString()}</p></div>`
+    document.body.appendChild(modal)
+    modal.querySelector(".close").addEventListener("click", () => modal.remove())
+    modal.addEventListener("click", (event) => { if (event.target === modal) modal.remove() })
   } catch (error) {
     console.error("Error al ver detalles del pedido:", error)
     showNotification("Error al cargar los detalles del pedido", "error")

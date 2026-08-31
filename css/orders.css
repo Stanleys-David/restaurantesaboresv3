@@ -309,3 +309,4 @@
         }
 
         .w-full { width: 100%; }
+.customer-order-modal { max-width:620px; }.customer-order-meta { display:grid; grid-template-columns:repeat(2,1fr); gap:.5rem; margin:1rem 0; padding:1rem; background:#fff7ed; border-radius:.75rem; }.customer-order-meta p { margin:0; }.customer-order-products > div { display:flex; justify-content:space-between; padding:.75rem 0; border-bottom:1px solid #e5e7eb; }.customer-order-products small { display:block; color:#6b7280; margin-top:.2rem; }.customer-order-total { text-align:right; color:#059669; font-size:1.25rem; font-weight:700; margin-top:1rem; } @media(max-width:520px){.customer-order-meta{grid-template-columns:1fr;}}

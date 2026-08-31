@@ -209,9 +209,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const loadAvailableTables = async () => {
     if (!tableSelect) return
     const result = await getAllTables()
-    tableSelect.innerHTML = `<option value="">Selecciona una mesa</option>${(result.tables || []).filter((table) => table.status !== "occupied").map((table) => `<option value="${table.id}">${table.name} · ${table.seats} puestos</option>`).join("")}`
+    tableSelect.innerHTML = `<option value="">Selecciona una mesa</option>${(result.tables || []).filter((table) => (table.status || "available") === "available" || table.status === "libre").map((table) => `<option value="${table.id}">${table.name} · ${table.seats} puestos</option>`).join("")}`
   }
-  loadAvailableTables()
+  loadAvailableTables().then(() => { const waiterTable = JSON.parse(localStorage.getItem("activeWaiterTable") || "null"); if (waiterTable) { document.getElementById("orderType").value = "restaurante"; tableSelect.style.display = "block"; tableSelect.required = true; tableSelect.value = waiterTable.id; document.getElementById("customerAddress").style.display = "none"; document.getElementById("arrivalTime").style.display = "none"; localStorage.removeItem("activeWaiterTable") } })
 
   document.getElementById("customerName").addEventListener("blur", autocompleteCustomer)
   document.getElementById("customerPhone").addEventListener("blur", autocompleteCustomer)

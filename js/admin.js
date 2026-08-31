@@ -16,6 +16,8 @@ import {
   deleteUserProfile,
   getUserByEmail,
   saveCashClosing,
+  getPublicIntegrationSettings,
+  savePublicIntegrationSettings,
 } from "./firebase.js"
 
 const localUser = JSON.parse(localStorage.getItem("currentUser") || "null")
@@ -312,6 +314,9 @@ function setupTabs() {
 
 async function loadTabContent(tabId) {
   switch (tabId) {
+    case "integrations":
+      await setupIntegrations()
+      break
     case "cash":
       await setupCashClosing()
       break
@@ -1383,6 +1388,23 @@ window.sendOrderStatusWhatsApp = sendOrderStatusWhatsApp
 
 
 
+
+async function setupIntegrations() {
+  const form = document.getElementById("integrationsForm")
+  if (!form || form.dataset.ready) return
+  form.dataset.ready = "true"
+  const result = await getPublicIntegrationSettings()
+  if (result.success) {
+    document.getElementById("wompiPublicKey").value = result.settings.wompiPublicKey || ""
+    document.getElementById("whatsappPhoneNumberId").value = result.settings.whatsappPhoneNumberId || ""
+    document.getElementById("whatsappTemplateName").value = result.settings.whatsappTemplateName || ""
+  }
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault()
+    const saved = await savePublicIntegrationSettings({ wompiPublicKey: document.getElementById("wompiPublicKey").value.trim(), whatsappPhoneNumberId: document.getElementById("whatsappPhoneNumberId").value.trim(), whatsappTemplateName: document.getElementById("whatsappTemplateName").value.trim() })
+    showNotification(saved.success ? "Configuración guardada" : "No fue posible guardar la configuración", saved.success ? "success" : "error")
+  })
+}
 async function setupCashClosing() {
   const form = document.getElementById("cashForm")
   if (!form || form.dataset.ready) return

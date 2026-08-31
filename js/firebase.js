@@ -6,6 +6,8 @@ import {
   collection,
   addDoc,
   getDocs,
+  getDoc,
+  setDoc,
   doc,
   updateDoc,
   deleteDoc,
@@ -219,6 +221,21 @@ export async function getAllUsers() {
 export async function saveCashClosing(data) {
   try { const ref = await addDoc(collection(db, "cashClosings"), { ...data, createdAt: new Date() }); return { success: true, id: ref.id } }
   catch (error) { console.error("Error al guardar cuadre:", error); return { success: false, error: error.message } }
+}
+export async function getPublicIntegrationSettings() {
+  try {
+    const snapshot = await getDoc(doc(db, "settings", "credentials"))
+    if (!snapshot.exists()) return { success: true, settings: {} }
+    const data = snapshot.data()
+    return { success: true, settings: { wompiPublicKey: data.wompiPublicKey || "", whatsappPhoneNumberId: data.whatsappPhoneNumberId || "", whatsappTemplateName: data.whatsappTemplateName || "" } }
+  } catch (error) { return { success: false, error: error.message } }
+}
+
+export async function savePublicIntegrationSettings(settings) {
+  try {
+    await setDoc(doc(db, "settings", "credentials"), { wompiPublicKey: settings.wompiPublicKey || "", whatsappPhoneNumberId: settings.whatsappPhoneNumberId || "", whatsappTemplateName: settings.whatsappTemplateName || "", updatedAt: new Date() }, { merge: true })
+    return { success: true }
+  } catch (error) { console.error("Error al guardar integraciones:", error); return { success: false, error: error.message } }
 }
 // ==========================================
 // FUNCIONES PARA PRODUCTOS
