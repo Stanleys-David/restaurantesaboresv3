@@ -1,26 +1,58 @@
 @import 'tailwindcss';
 
+/* Paleta única de la experiencia cliente: mostaza de marca, crema de superficie y neutros. */
 @theme inline {
   --font-sans: var(--font-geist);
   --font-mono: var(--font-geist-mono);
-  --color-background: #f7f7f2;
-  --color-foreground: #1e2724;
-  --color-card: #ffffff;
-  --color-card-foreground: #1e2724;
-  --color-primary: #176b5b;
-  --color-primary-foreground: #f7f7f2;
-  --color-secondary: #e5efe9;
-  --color-secondary-foreground: #176b5b;
-  --color-muted: #eef1ed;
-  --color-muted-foreground: #68746e;
-  --color-accent: #e7a83d;
-  --color-accent-foreground: #32240f;
-  --color-border: #dce4df;
+  --color-background: #ffffff;
+  --color-foreground: #242424;
+  --color-card: #fdf3d9;
+  --color-card-foreground: #242424;
+  --color-primary: #f5c518;
+  --color-primary-foreground: #242424;
+  --color-secondary: #fff8e8;
+  --color-secondary-foreground: #242424;
+  --color-muted: #f6f6f4;
+  --color-muted-foreground: #737373;
+  --color-accent: #f5c518;
+  --color-accent-foreground: #242424;
+  --color-border: #e8e8e5;
   --color-input: #ffffff;
   --radius-lg: 1.25rem;
 }
 
 * { box-sizing: border-box; }
-body { margin: 0; background: #f7f7f2; color: #1e2724; font-family: var(--font-geist), sans-serif; }
+html { background: var(--color-background); }
+body { margin: 0; background: var(--color-background); color: var(--color-foreground); font-family: var(--font-geist), sans-serif; }
 button, input, select, textarea { font: inherit; }
 button { cursor: pointer; }
+
+/* Ajustes globales de composición para acercar el menú a la referencia sin tocar su lógica. */
+header { border-color: var(--color-border) !important; background: color-mix(in srgb, var(--color-background) 94%, transparent) !important; }
+header > div { max-width: 1180px !important; padding-block: 1rem !important; }
+header button:first-child > span:first-child { border-radius: 1rem !important; background: var(--color-primary) !important; color: var(--color-primary-foreground) !important; }
+header strong { font-size: 1.05rem !important; }
+header small { color: var(--color-muted-foreground); }
+main > section { max-width: 1180px !important; }
+main > section:first-of-type { padding-top: 0 !important; }
+main > section:first-of-type > div { border-radius: 0 0 1.75rem 1.75rem !important; background: var(--color-card) !important; color: var(--color-card-foreground) !important; }
+main > section:first-of-type h1 { max-width: 30rem; font-size: clamp(2rem, 5vw, 4rem) !important; }
+main > section:first-of-type p { color: var(--color-muted-foreground) !important; }
+main > section:first-of-type button { background: var(--color-primary) !important; color: var(--color-primary-foreground) !important; }
+main > section:first-of-type img { min-height: 18rem; }
+input, textarea { border-color: var(--color-border) !important; background: var(--color-background) !important; }
+input:focus, textarea:focus { border-color: var(--color-primary) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 24%, transparent); }
+main section:nth-of-type(2) [class*="overflow-x-auto"] button { border: 1px solid transparent; }
+main section:nth-of-type(2) [class*="overflow-x-auto"] button:first-child,
+main section:nth-of-type(2) [class*="overflow-x-auto"] button:hover { border-color: var(--color-primary); background: var(--color-secondary); }
+main section:nth-of-type(2) [class*="grid-cols"] > div { border-color: var(--color-border) !important; border-radius: 1.1rem !important; background: var(--color-background) !important; box-shadow: 0 8px 24px color-mix(in srgb, var(--color-foreground) 7%, transparent); }
+main section:nth-of-type(2) [class*="grid-cols"] img { border-radius: 1rem !important; }
+main section:nth-of-type(2) [class*="grid-cols"] button { background: var(--color-primary) !important; color: var(--color-primary-foreground) !important; }
+main section:nth-of-type(2) [class*="grid-cols"] p { color: var(--color-muted-foreground) !important; }
+main > div.fixed { border-color: var(--color-border) !important; background: var(--color-background) !important; }
+main > div.fixed button { color: var(--color-muted-foreground); }
+main > div.fixed button:first-child { color: var(--color-foreground); }
+
+@media (min-width: 768px) {
+  main section:nth-of-type(2) [class*="grid-cols"] { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+}
