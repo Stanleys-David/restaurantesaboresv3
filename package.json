@@ -1,0 +1,40 @@
+{
+  "name": "v0-project",
+  "version": "1.0.0",
+  "description": "��#\u0000 \u0000r\u0000e\u0000s\u0000t\u0000a\u0000u\u0000r\u0000a\u0000n\u0000t\u0000e\u0000s\u0000a\u0000b\u0000o\u0000r\u0000e\u0000s\u0000v\u00003\u0000\r\u0000 \u0000",
+  "main": "sw.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "echo \"No tests configured\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Stanleys-David/restaurantesaboresv3.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/Stanleys-David/restaurantesaboresv3/issues"
+  },
+  "homepage": "https://github.com/Stanleys-David/restaurantesaboresv3#readme",
+  "dependencies": {
+    "firebase": "^11.9.0",
+    "lucide-react": "^1.39.0",
+    "next": "^16.3.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^26.4.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "postcss": "^8.5.26",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2"
+  }
+}

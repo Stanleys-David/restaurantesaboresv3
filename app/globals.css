@@ -1,0 +1,26 @@
+@import 'tailwindcss';
+
+@theme inline {
+  --font-sans: var(--font-geist);
+  --font-mono: var(--font-geist-mono);
+  --color-background: #f7f7f2;
+  --color-foreground: #1e2724;
+  --color-card: #ffffff;
+  --color-card-foreground: #1e2724;
+  --color-primary: #176b5b;
+  --color-primary-foreground: #f7f7f2;
+  --color-secondary: #e5efe9;
+  --color-secondary-foreground: #176b5b;
+  --color-muted: #eef1ed;
+  --color-muted-foreground: #68746e;
+  --color-accent: #e7a83d;
+  --color-accent-foreground: #32240f;
+  --color-border: #dce4df;
+  --color-input: #ffffff;
+  --radius-lg: 1.25rem;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: #f7f7f2; color: #1e2724; font-family: var(--font-geist), sans-serif; }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
